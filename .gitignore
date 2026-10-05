@@ -1,0 +1,25 @@
+# Залежності
+node_modules/
+
+# Збірки фронтенду (Vite)
+dist/
+dist-ssr/
+
+# Логи та звіти тестів
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+coverage/
+
+# Змінні оточення
+.env
+.env.*
+!.env.example
+
+# Системні файли та кеш редакторів
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
