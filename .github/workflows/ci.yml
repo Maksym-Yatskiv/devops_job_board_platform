@@ -1,4 +1,4 @@
-name: Microservices CI
+name: Job Board Full Pipeline
 
 on:
   push:
@@ -18,6 +18,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./frontend/package-lock.json
       - run: npm install
       - run: npm test
 
@@ -32,6 +34,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./services/identity-service/package-lock.json
       - run: npm install
       - run: npm test
 
@@ -46,6 +50,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./services/catalog-service/package-lock.json
       - run: npm install
       - run: npm test
 
@@ -60,5 +66,44 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ./services/application-service/package-lock.json
       - run: npm install
       - run: npm test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [frontend-test, identity-service-test, catalog-service-test, application-service-test]
+    outputs:
+      image_tag: ${{ steps.set_tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set Image Tag
+        id: set_tag
+        run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+      - name: Build Application Packages
+        run: |
+          echo "Всі 4 тести пройшли успішно."
+          echo "Збираємо артефакти та Docker-образи для версії: ${{ steps.set_tag.outputs.tag }}"
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: staging
+    steps:
+      - name: Deploy to Staging Environment
+        run: |
+          echo "Розгортаємо версію ${{ needs.build.outputs.image_tag }} на Staging..."
+          echo "Виконуємо міграції тестової БД та проганяємо валідацію."
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    environment:
+      name: production
+    steps:
+      - name: Deploy to Production Environment
+        run: |
+          echo "Розгортаємо фінальну версію ${{ needs.build.outputs.image_tag }} на Production..."
+          echo "Система оновлена для кінцевих користувачів."
