@@ -1,7 +1,7 @@
 const request = require('supertest');
 const app = require('./index');
 
-describe('Monolith API Tests', () => {
+describe('API Tests', () => {
     
     describe('Identity Service', () => {
         it('GET /api/identity/health повертає статус 200', async () => {
